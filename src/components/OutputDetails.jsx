@@ -12,7 +12,7 @@ const OutputDetails = ({ outputDetails }) => {
       <p className="text-sm">
         Memory:{" "}
         <span className="font-semibold px-2 py-1 rounded-md bg-gray-100">
-          {outputDetails?.memory}
+          {outputDetails?.memory} kB
         </span>
       </p>
       <p className="text-sm">

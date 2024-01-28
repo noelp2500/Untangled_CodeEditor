@@ -3,7 +3,7 @@ import CodeEditorWindow from "./CodeEditorWindow";
 import axios from "axios";
 import { classnames } from "../utils/general";
 import { languageOptions } from "../constants/languageOptions";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 //import Draggable from "react-draggable";
 import { defineTheme } from "../lib/defineTheme";
@@ -14,45 +14,19 @@ import CustomInput from "./CustomInput";
 import OutputDetails from "./OutputDetails";
 import ThemeDropdown from "./ThemeDropdown";
 import LanguagesDropdown from "./LanguagesDropdown";
-
-const javascriptDefault = `/**
-* Problem: Binary Search: Search a sorted array for a target value.
-*/
-
-// Time: O(log n)
-const binarySearch = (arr, target) => {
- return binarySearchHelper(arr, target, 0, arr.length - 1);
-};
-
-const binarySearchHelper = (arr, target, start, end) => {
- if (start > end) {
-   return false;
- }
- let mid = Math.floor((start + end) / 2);
- if (arr[mid] === target) {
-   return mid;
- }
- if (arr[mid] < target) {
-   return binarySearchHelper(arr, target, mid + 1, end);
- }
- if (arr[mid] > target) {
-   return binarySearchHelper(arr, target, start, mid - 1);
- }
-};
-
-const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-const target = 5;
-console.log(binarySearch(arr, target));
-`;
+import Loader from "./Loader";
+import { ResultFormatter } from "../utils/resultFormatter";
+import { promptExtractInCode, codeExtractInCode } from "../utils/codeFormatter";
+import { defaultCodeSnippet } from "../constants/defaultCodeSnippet";
 
 const Landing = () => {
-  const [code, setCode] = useState(javascriptDefault);
+  const [code, setCode] = useState(defaultCodeSnippet);
   const [customInput, setCustomInput] = useState("");
   const [outputDetails, setOutputDetails] = useState(null);
   const [processing, setProcessing] = useState(null);
   const [theme, setTheme] = useState("cobalt");
-  const [language, setLanguage] = useState(languageOptions[0]);
-
+  const [language, setLanguage] = useState(languageOptions[37]);
+  const [loading, setLoading] = useState(false);
   const enterPress = useKeyPress("Enter");
   const ctrlPress = useKeyPress("Control");
 
@@ -107,7 +81,6 @@ const Landing = () => {
       })
       .catch((err) => {
         let error = err.response ? err.response.data : err;
-        // get error status
         let status = err.response.status;
         if (status === 429) {
           showErrorToast(
@@ -196,8 +169,12 @@ const Landing = () => {
 
   const handleAICall = async () => {
     try {
-      const apiUrl = process.env.REACT_APP_PALMAI_API_URL;
-      const data = { code: code };
+      const apiUrl = "https://noelp2500.pythonanywhere.com/api/palmAIHelper";
+      const data = {
+        code: codeExtractInCode(code),
+        prompt: promptExtractInCode(code) || null,
+      };
+      setCode(null);
 
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -211,6 +188,9 @@ const Landing = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       const result = await response.json();
+
+      setCode(ResultFormatter(result["result"]));
+      setLoading(false);
     } catch (error) {
       let errorMessage = error.message || "Unknown error";
       let status = null;
@@ -218,16 +198,18 @@ const Landing = () => {
         status = parseInt(error.message.split(" ")[3], 10) || null;
       }
       console.error("API Error:", errorMessage, "Status:", status);
+      setLoading(false);
     }
   };
 
   const handleAICallClick = () => {
+    setLoading(true);
     handleAICall({ code });
   };
 
   return (
-    <>
-      <div className="flex flex-row bg-blue-500">
+    <div className="h-screen w-full bg-blue-400">
+      <div className="flex flex-row bg-blue-400">
         <div className="px-4 py-2">
           <LanguagesDropdown onSelectChange={onSelectChange} />
         </div>
@@ -235,26 +217,41 @@ const Landing = () => {
           <ThemeDropdown handleThemeChange={handleThemeChange} theme={theme} />
         </div>
       </div>
-      <div className="flex flex-row space-x-4 items-start px-4 py-6 bg-blue-500">
-        <div className="flex flex-col w-full h-full justify-start items-end flex items-center justify-center">
-          <CodeEditorWindow
-            code={code}
-            onChange={onChange}
-            language={language?.value}
-            theme={theme.value}
-          />
-          <div className="flex items-center justify-center py-2">
-            <button
-              onClick={handleAICallClick}
-              className={classnames(
-                "border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0",
-                !code ? "opacity-50" : ""
-              )}
-            >
-              Get AI Help [BETA - May not work]
-            </button>
+      <div className="flex flex-row space-x-4 items-start px-4 py-6 bg-blue-400">
+        {
+          <div className="flex flex-col w-full h-full justify-start items-end flex items-center justify-center">
+            <h1 className="font-bold text-xl flex items-center justify-center bg-clip-text text-white bg-gradient-to-r from-slate-900 to-slate-700 mb-2">
+              Code Window
+            </h1>
+            {code && (
+              <CodeEditorWindow
+                code={code ? code : ""}
+                onChange={onChange}
+                language={language?.value}
+                theme={theme.value}
+              />
+            )}
+            {!loading ? (
+              <div className="flex items-center justify-center py-2">
+                <button
+                  onClick={handleAICallClick}
+                  className={classnames(
+                    "border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0",
+                    !code ? "opacity-50" : ""
+                  )}
+                >
+                  Get AI Help
+                </button>
+              </div>
+            ) : (
+              <div className=" flex items-center justify-center py-4">
+                <div className="w-full h-full flex items-center justify-center shadow-4xl">
+                  <Loader></Loader>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        }
 
         <div className="right-container flex flex-shrink-0 w-[30%] flex-col">
           <OutputWindow outputDetails={outputDetails} />
@@ -277,10 +274,10 @@ const Landing = () => {
           {outputDetails && <OutputDetails outputDetails={outputDetails} />}
         </div>
       </div>
-      <div className="bg-blue-500">
+      {/* <div className="bg-blue-400">
         <Footer />
-      </div>
-    </>
+      </div> */}
+    </div>
   );
 };
 

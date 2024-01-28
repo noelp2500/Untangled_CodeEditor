@@ -1,8 +1,8 @@
 export const defaultCodeSnippet = () => {
   return `
-
+  
 """
-* Welcome to Noel's AI Code Editor/Playground! *
+* Welcome to Noel's Untangled Code Editor/Playground! *
 
 Embark on a journey of excellence with our refined coding environment, boasting these distinguished features:
 

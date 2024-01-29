@@ -29,6 +29,7 @@ const Landing = () => {
   const [loading, setLoading] = useState(false);
   const enterPress = useKeyPress("Enter");
   const ctrlPress = useKeyPress("Control");
+  const [error, setError] = useState(false);
 
   const onSelectChange = (sl) => {
     setLanguage(sl);
@@ -60,6 +61,7 @@ const Landing = () => {
       source_code: btoa(code),
       stdin: btoa(customInput),
     };
+
     const options = {
       method: "POST",
       url: process.env.REACT_APP_RAPID_API_URL,
@@ -80,7 +82,11 @@ const Landing = () => {
         checkStatus(token);
       })
       .catch((err) => {
+        setError(true);
+        setProcessing(false);
+        console.log("err", err);
         let error = err.response ? err.response.data : err;
+        console.log("error", error);
         let status = err.response.status;
         if (status === 429) {
           showErrorToast(
@@ -88,8 +94,6 @@ const Landing = () => {
             10000
           );
         }
-        setProcessing(false);
-        console.log("catch block...", error);
       });
   };
 
@@ -268,7 +272,11 @@ const Landing = () => {
                 !code ? "opacity-50" : ""
               )}
             >
-              {processing ? "Processing..." : "Compile and Execute"}
+              {processing
+                ? "Processing..."
+                : error
+                ? "Error"
+                : "Compile and Execute"}
             </button>
           </div>
           {outputDetails && <OutputDetails outputDetails={outputDetails} />}

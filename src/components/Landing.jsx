@@ -65,12 +65,11 @@ const Landing = () => {
     const options = {
       method: "POST",
       url: process.env.REACT_APP_RAPID_API_URL,
-      params: { base64_encoded: "true", fields: "*" },
+      params: { base64_encoded: "true", wait: "false", fields: "*" },
       headers: {
-        "content-type": "application/json",
         "Content-Type": "application/json",
-        "X-RapidAPI-Host": process.env.REACT_APP_RAPID_API_HOST,
-        "X-RapidAPI-Key": process.env.REACT_APP_RAPID_API_KEY,
+        "x-rapidapi-host": process.env.REACT_APP_RAPID_API_HOST,
+        "x-rapidapi-key": process.env.REACT_APP_RAPID_API_KEY,
       },
       data: formData,
     };
@@ -90,7 +89,7 @@ const Landing = () => {
         let status = err.response.status;
         if (status === 429) {
           showErrorToast(
-            `Quota of 100 requests exceeded for the Day! Please read the blog on freeCodeCamp to learn how to setup your own RAPID API Judge0!`,
+            `Quota of 50 requests exceeded for the Day! Please read the blog on freeCodeCamp to learn how to setup your own RAPID API Judge0!`,
             10000
           );
         }
@@ -101,10 +100,11 @@ const Landing = () => {
     const options = {
       method: "GET",
       url: process.env.REACT_APP_RAPID_API_URL + "/" + token,
-      params: { base64_encoded: "true", fields: "*" },
+      params: { base64_encoded: "true", wait: "false", fields: "*" },
       headers: {
-        "X-RapidAPI-Host": process.env.REACT_APP_RAPID_API_HOST,
-        "X-RapidAPI-Key": process.env.REACT_APP_RAPID_API_KEY,
+        "Content-Type": "application/json",
+        "x-rapidapi-host": process.env.REACT_APP_RAPID_API_HOST,
+        "x-rapidapi-key": process.env.REACT_APP_RAPID_API_KEY,
       },
     };
     try {

@@ -77,6 +77,7 @@ const Landing = () => {
     axios
       .request(options)
       .then(function (response) {
+        // setError(true);
         const token = response.data.token;
         checkStatus(token);
       })
@@ -86,15 +87,23 @@ const Landing = () => {
         console.log("err", err);
         let error = err.response ? err.response.data : err;
         console.log("error", error);
-        let status = err.response.status;
-        if (status === 429) {
-          showErrorToast(
-            `Quota of 50 requests exceeded for the Day! Please read the blog on freeCodeCamp to learn how to setup your own RAPID API Judge0!`,
-            10000
-          );
-        }
+        // let status = err.response.status;
+        // if (status === 429) {
+        //   showErrorToast(
+        //     `Quota of 50 requests exceeded for the Day! Please read the blog on freeCodeCamp to learn how to setup your own RAPID API Judge0!`,
+        //     10000
+        //   );
+        // }
       });
   };
+
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     setError(!error);
+  //   }, 1000);
+
+  //   return () => clearTimeout(timer);
+  // }, [error]);
 
   const checkStatus = async (token) => {
     const options = {
@@ -211,6 +220,10 @@ const Landing = () => {
     handleAICall({ code });
   };
 
+  const handleResetError = () => {
+    setError(false);
+  };
+
   return (
     <div className="h-screen w-full bg-blue-400">
       <div className="flex flex-row bg-blue-400">
@@ -257,7 +270,7 @@ const Landing = () => {
           </div>
         }
 
-        <div className="right-container flex flex-shrink-0 w-[30%] flex-col">
+        <div className={"left-container flex flex-shrink-0 w-[30%] flex-col"}>
           <OutputWindow outputDetails={outputDetails} />
           <div className="flex flex-col items-end">
             <CustomInput
@@ -278,6 +291,18 @@ const Landing = () => {
                 ? "Error"
                 : "Compile and Execute"}
             </button>
+            {error && (
+              <button
+                onClick={handleResetError}
+                disabled={!code}
+                className={classnames(
+                  "mt-4 border-2 border-black z-10 rounded-md shadow-[5px_5px_0px_0px_rgba(0,0,0)] px-4 py-2 hover:shadow transition duration-200 bg-white flex-shrink-0",
+                  !code ? "opacity-50" : ""
+                )}
+              >
+                {error && "Reset"}
+              </button>
+            )}
           </div>
           {outputDetails && <OutputDetails outputDetails={outputDetails} />}
         </div>
